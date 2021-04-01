@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <iostream>
 #include <termios.h>
 #include <cstring>
@@ -7,9 +8,9 @@
 #include <wchar.h>
 #include <sodium.h>
 
-#include "no_match_err.hpp"
+#include "error.hpp"
+#include "constants.hpp"
 
-const int MAX_PWD_LEN = 256;
 
 class Password {
 
@@ -21,7 +22,7 @@ private:
     std::string _confirm_error;
     bool _confirm_flag;
 
-    int read_pwd(char*);
+    int read_pwd(char*); // could be friend function, but meh
 
 public:
     Password():
@@ -30,14 +31,18 @@ public:
         _confirm_error(),
         _confirm_flag(false) 
     {
+       
         _pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
         _confirm_pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
         if (_pwd == nullptr || _confirm_pwd == nullptr) {
             throw new std::bad_alloc;
-        } 
+        }
+        std::memset(_pwd, 0, MAX_PWD_LEN + 1); 
+        std::memset(_confirm_pwd, 0, MAX_PWD_LEN + 1); 
     };
 
     ~Password() {
+       
         sodium_memzero(_pwd, (MAX_PWD_LEN + 1) * sizeof(char));
         sodium_memzero(_confirm_pwd, (MAX_PWD_LEN + 1) * sizeof(char));
         sodium_free(_confirm_pwd);
@@ -45,11 +50,13 @@ public:
     }
 
     inline Password& with_prompt(std::string promptval) {
+      
         _prompt = std::move(promptval);
         return *this;
     }
 
     inline Password& with_confirmation(std::string confirm_txt, std::string confirm_err) {
+        
         _confirm_flag = true;
         _confirmation_prompt = std::move(confirm_txt);
         _confirm_error = std::move(confirm_err);
@@ -59,6 +66,7 @@ public:
     const Password& interact();
 
     const char* c_str() const {
+       
         return _pwd;
     }
 
