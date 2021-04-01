@@ -24,6 +24,8 @@ public:
                 commands::list();
             else if (p.answer() == "exit")
                 return;
+            else if (p.answer() == "help")
+                commands::print_help();
             else
                 std::cout << "Unknown option." << std::endl;
             p.clear_answer();
