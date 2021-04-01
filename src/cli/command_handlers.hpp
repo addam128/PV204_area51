@@ -139,4 +139,14 @@ namespace commands {
 
         //ecall_new_facility(master_pwd.c_str());
     }
+
+    void print_help() {
+        std::cout << "Available commands:\n"
+                    << "\tnew - create new password vault\n"
+                    << "\tadd - add new password to vault\n"
+                    << "\tremove - remove password entry from vault\n"
+                    << "\tlist - show availablle usernames for given service\n"
+                    << "\tchange - change the master password\n"
+                    << "\texit - exit program\n";
+    }
 }
