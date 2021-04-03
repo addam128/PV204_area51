@@ -1,0 +1,51 @@
+enclave {
+    // includes
+    include "pwmanager.pb.h"
+
+
+    // define ECALLs
+    trusted {
+        public int ecall_create_wallet(
+            [in, string] const char* master_password
+        );
+
+        public int ecall_list_wallet(
+            [in, string] const char* master_password,
+        );
+
+        public int ecall_change_master_password(
+            [in, string] const char* old_password,
+            [in, string] const char* new_password
+        );
+
+        public int ecall_add_entry(
+            [in, string] const char* master_password,
+            [in, string] const char* service,
+            [in, string] const char* username,
+            [in, string] const char* password
+        );
+
+        public int ecall_list_entry(
+            [in, string] const char* master_password,
+            [in, string] const char* service
+        );
+    };
+
+
+    // define OCALLs
+    untrusted {
+        int ocall_save_wallet(
+            [in, size=sealed_size] const uint8_t* sealed_data,
+            size_t sealed_size
+        );
+
+        int ocall_load_wallet(
+            [out, size=sealed_size] uint8_t* sealed_data,
+            size_t sealed_size
+        );
+
+        int ocall_print_credentials(
+            [in] const Entry* entry
+        );
+    };
+};
