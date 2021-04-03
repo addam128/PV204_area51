@@ -45,7 +45,9 @@ enclave {
         );
 
         int ocall_print_credentials(
-            [in] const Entry* entry
+            [in, string] const char* service,
+            [in, string] const char* username,
+            [in, string] const char* password
         );
     };
 };
