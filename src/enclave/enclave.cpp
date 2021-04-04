@@ -37,7 +37,7 @@ int ecall_list_wallet(const char* master_password) {
     sgx_status_t get_wallet_status;
     int get_wallet_ret;
     const char*  serialized_wallet;
-    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet);
+    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
 
     // deserialize wallet
     std::string serialized_wallet_string(serialized_wallet);
@@ -52,15 +52,76 @@ int ecall_list_wallet(const char* master_password) {
 
     //TODO: iterate through entries and call ocall_print_credentials on each
 
+    free(serialized_wallet);
     return 0;
 }
 
 int ecall_change_master_password(const char* old_password, const char* new_password) {
+    // load serialized wallet
+    sgx_status_t get_wallet_status;
+    int get_wallet_ret;
+    const char*  serialized_wallet;
+    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
 
+    // deserialize wallet
+    std::string serialized_wallet_string(serialized_wallet);
+    Wallet wallet;
+    wallet.ParseFromString(serialized_wallet_string);
+
+    // check master password
+    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
+        free(serialized_wallet);
+        return -1;
+    }
+
+    wallet.set_master_password(new_password);
+
+    // serialize and call store_wallet
+    std::string serialized_protobuf;
+
+    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
+    const char* serialized_char = serialized_protobuf.c_str();
+    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
+
+    sgx_status_t store_status;
+    int store_ret;
+    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+
+    return 0;
 }
 
 int ecall_add_entry(const char* master_password, const char* service, const char* username, const char* password) {
+    // load serialized wallet
+    sgx_status_t get_wallet_status;
+    int get_wallet_ret;
+    const char*  serialized_wallet;
+    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
 
+    // deserialize wallet
+    std::string serialized_wallet_string(serialized_wallet);
+    Wallet wallet;
+    wallet.ParseFromString(serialized_wallet_string);
+
+    // check master password
+    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
+        free(serialized_wallet);
+        return -1;
+    }
+
+    //TODO: Add new entry
+
+    // serialize and call store_wallet
+    std::string serialized_protobuf;
+
+    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
+    const char* serialized_char = serialized_protobuf.c_str();
+    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
+
+    sgx_status_t store_status;
+    int store_ret;
+    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+
+    return 0;
 }
 
 int ecall_list_entry(const char* master_password, const char* service) {
