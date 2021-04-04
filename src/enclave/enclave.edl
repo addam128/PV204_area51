@@ -6,19 +6,24 @@ enclave {
     // define ECALLs
     trusted {
         // PUBLIC
+
+        // creates new wallet
         public int ecall_create_wallet(
             [in, string] const char* master_password
         );
 
+        // lists all (service, username) pairs stored in wallet
         public int ecall_list_wallet(
             [in, string] const char* master_password,
         );
 
+        // changes master password
         public int ecall_change_master_password(
             [in, string] const char* old_password,
             [in, string] const char* new_password
         );
 
+        // adds new (service, username, password) triplet
         public int ecall_add_entry(
             [in, string] const char* master_password,
             [in, string] const char* service,
@@ -26,40 +31,49 @@ enclave {
             [in, string] const char* password
         );
 
+        // lists (username, password) for given service
         public int ecall_list_entry(
             [in, string] const char* master_password,
             [in, string] const char* service
         );
 
         // PRIVATE
-        int ecall_read_wallet(
+
+        // reads file and returns unsealed wallet (serialized in protobuf)
+        int ecall_get_wallet(
+            [out, string] char* serialized_wallet
         );
 
+        // seals (already serialized to protobuf) wallet and stores it to file
         int ecall_store_wallet(
-            [in] const Wallet* wallet,
+            [in, string] const char* serialized_wallet
         );
     };
 
 
     // define OCALLs
     untrusted {
-        int ocall_save_wallet(
+        // saves sealed data to file
+        int ocall_save_to_file(
             [in, size=sealed_size] const uint8_t* sealed_data,
             size_t sealed_size
         );
 
-        int ocall_load_wallet(
+        // returns sealed data from file
+        int ocall_load_from_lide(
             [out, size=sealed_size] uint8_t* sealed_data,
             size_t sealed_size
         );
 
+        // prints (service, username, password) triplet
         int ocall_print_credentials(
             [in, string] const char* service,
             [in, string] const char* username,
             [in, string] const char* password
         );
 
-        int ocall_is_wallet(
+        // checks whether wallet already exists
+        int ocall_wallet_exists(
         );
     };
 };
