@@ -125,7 +125,27 @@ int ecall_add_entry(const char* master_password, const char* service, const char
 }
 
 int ecall_list_entry(const char* master_password, const char* service) {
+    // load serialized wallet
+    sgx_status_t get_wallet_status;
+    int get_wallet_ret;
+    const char*  serialized_wallet;
+    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
 
+    // deserialize wallet
+    std::string serialized_wallet_string(serialized_wallet);
+    Wallet wallet;
+    wallet.ParseFromString(serialized_wallet_string);
+
+    // check master password
+    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
+        free(serialized_wallet);
+        return -1;
+    }
+
+    // TODO: list entry (call ocall_print_credentials)
+
+    free(serialized_wallet);
+    return 0;
 }
 
 // seal and save wallet to file
@@ -182,6 +202,5 @@ int ecall_get_wallet(char* serialized_wallet) {
     return 0;
 }
 
-};
 
 
