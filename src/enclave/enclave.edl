@@ -47,7 +47,7 @@ enclave {
         // seals (already serialized to protobuf) wallet and stores it to file
         int ecall_store_wallet(
             [in, string] const char* serialized_wallet,
-            size_t serialized_size
+            size_t serialized_wallet_size
         );
     };
 
@@ -61,7 +61,7 @@ enclave {
         );
 
         // returns sealed data from file
-        int ocall_load_from_lide(
+        int ocall_load_from_file(
             [out, size=sealed_size] uint8_t* sealed_data,
             size_t sealed_size
         );
@@ -71,6 +71,11 @@ enclave {
             [in, string] const char* service,
             [in, string] const char* username,
             [in, string] const char* password
+        );
+
+        // returns maximal possible size of sealed serialized wallet (i.e file size)
+        int ocall_get_wallet_size(
+            [out] size_t* wallet_size
         );
 
         // checks whether wallet already exists
