@@ -33,11 +33,10 @@ enclave {
 
         // PRIVATE
         int ecall_read_wallet(
-            [in, string] const char* filename
         );
 
         int ecall_store_wallet(
-            [in] const Wallet* wallet
+            [in] const Wallet* wallet,
         );
     };
 
@@ -61,7 +60,6 @@ enclave {
         );
 
         int ocall_is_wallet(
-            [in, string] const char* filename
         );
     };
 };
