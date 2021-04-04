@@ -4,11 +4,11 @@
 #include "sgx_tseal.h"
 #include "sealing/sealing.h"
 
-public int ecall_create_wallet(const char* master_password) {
-
-    // check if wallet already exists
+int ecall_create_wallet(const char* master_password) {
     sgx_status_e ocall_status;
     int ocall_ret;
+
+    // check if wallet already exists
     ocall_status = ocall_is_wallet(&ocall_ret);
     if (ocall_ret != 0) {
         return -1 // TODO: Add proper error codes
@@ -19,29 +19,6 @@ public int ecall_create_wallet(const char* master_password) {
     wallet.set_master_password(master_password);
     wallet.set_number_of_entries(0);
 
-    // seal wallet
-    sgx_status_e sealing_status;
-    std::string serialized_protobuf;
-
-    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
-    const char* serialized_proto = serialized_protobuf.c_str();
-    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
-
-    uint8_t* sealed_data = (uint8_t*)malloc(sealed_size);
-    sealing_status = seal_wallet(); // TODO: implement sealing
-    if (sealing_status != SGX_SUCCESS) {
-        free(sealed_data);
-        return ERR_FAIL_SEAL;
-    }
-
-    // save sealed wallet
-    ocall_status = ocall_save_wallet(&ocall_ret, sealed_data, sealed_size);
-    free(sealed_data);
-    if (ocall_ret != 0 || ocall_status != SGX_SUCCESS) {
-        return -1;
-    }
-
-    return 0;
 }
 
 public int ecall_list_wallet(const char* master_password) {
@@ -58,6 +35,41 @@ public int ecall_add_entry(const char* master_password, const char* service, con
 
 public int ecall_list_entry(const char* master_password, const char* service) {
 
+}
+
+// seal and save wallet to file
+int ecall_store_wallet(const Wallet* wallet) {
+    // seal wallet
+    sgx_status_e sealing_status;
+    std::string serialized_protobuf;
+
+    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
+    const char* serialized_proto = serialized_protobuf.c_str();
+    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
+
+    uint8_t* sealed_data = (uint8_t*)malloc(sealed_size);
+    sealing_status = seal_wallet(); // TODO: implement sealing
+    if (sealing_status != SGX_SUCCESS) {
+        free(sealed_data);
+        return ERR_FAIL_SEAL;
+    }
+
+    // save sealed wallet
+    sgx_status_e ocall_status;
+    int ocall_ret;
+
+    ocall_status = ocall_save_wallet(&ocall_ret, sealed_data, sealed_size);
+    free(sealed_data);
+    if (ocall_ret != 0 || ocall_status != SGX_SUCCESS) {
+        return -1;
+    }
+
+    return 0;
+}
+
+// read from file and unseal
+int ecall_read_wallet() {
+    return 0;
 }
 
 };
