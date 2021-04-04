@@ -33,6 +33,29 @@ int ecall_create_wallet(const char* master_password) {
 }
 
 public int ecall_list_wallet(const char* master_password) {
+    // load serialized wallet
+    sgx_status_t get_wallet_status;
+    int get_wallet_ret;
+    const char*  serialized_wallet;
+    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet);
+
+    // deserialize wallet
+    std::string serialized_wallet_string(serialized_wallet);
+    Wallet wallet;
+    wallet.ParseFromString(serialized_wallet_string);
+
+    // check master password
+    if (wallet.master_password().compare(std::string pass(master_password)) != 0) {
+        free(serialized_wallet);
+        return -1;
+    }
+
+    //TODO: iterate through entries and call ocall_print_credentials on each
+
+    return 0;
+
+
+
 
 }
 
