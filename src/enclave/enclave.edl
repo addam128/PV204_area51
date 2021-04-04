@@ -46,7 +46,8 @@ enclave {
 
         // seals (already serialized to protobuf) wallet and stores it to file
         int ecall_store_wallet(
-            [in, string] const char* serialized_wallet
+            [in, string] const char* serialized_wallet,
+            size_t serialized_size
         );
     };
 
