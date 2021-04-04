@@ -5,6 +5,7 @@ enclave {
 
     // define ECALLs
     trusted {
+        // PUBLIC
         public int ecall_create_wallet(
             [in, string] const char* master_password
         );
@@ -29,6 +30,15 @@ enclave {
             [in, string] const char* master_password,
             [in, string] const char* service
         );
+
+        // PRIVATE
+        int ecall_read_wallet(
+            [in, string] const char* filename
+        );
+
+        int ecall_store_wallet(
+            [in] const Wallet* wallet
+        );
     };
 
 
@@ -48,6 +58,10 @@ enclave {
             [in, string] const char* service,
             [in, string] const char* username,
             [in, string] const char* password
+        );
+
+        int ocall_is_wallet(
+            [in, string] const char* filename
         );
     };
 };
