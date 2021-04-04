@@ -32,7 +32,7 @@ int ecall_create_wallet(const char* master_password) {
     return 0;
 }
 
-public int ecall_list_wallet(const char* master_password) {
+int ecall_list_wallet(const char* master_password) {
     // load serialized wallet
     sgx_status_t get_wallet_status;
     int get_wallet_ret;
@@ -53,21 +53,17 @@ public int ecall_list_wallet(const char* master_password) {
     //TODO: iterate through entries and call ocall_print_credentials on each
 
     return 0;
+}
 
-
-
+int ecall_change_master_password(const char* old_password, const char* new_password) {
 
 }
 
-public int ecall_change_master_password(const char* old_password, const char* new_password) {
+int ecall_add_entry(const char* master_password, const char* service, const char* username, const char* password) {
 
 }
 
-public int ecall_add_entry(const char* master_password, const char* service, const char* username, const char* password) {
-
-}
-
-public int ecall_list_entry(const char* master_password, const char* service) {
+int ecall_list_entry(const char* master_password, const char* service) {
 
 }
 
