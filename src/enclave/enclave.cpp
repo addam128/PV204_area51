@@ -5,12 +5,11 @@
 #include "sealing/sealing.h"
 
 int ecall_create_wallet(const char* master_password) {
-    sgx_status_e ocall_status;
-    int ocall_ret;
-
     // check if wallet already exists
-    ocall_status = ocall_is_wallet(&ocall_ret);
-    if (ocall_ret != 0) {
+    sgx_status_t is_wallet_status;
+    int is_wallet_ret;
+    is_wallet_status = ocall_is_wallet(&is_wallet_ret);
+    if (is_wallet_ret != 0) {
         return -1 // TODO: Add proper error codes
     }
 
@@ -19,6 +18,18 @@ int ecall_create_wallet(const char* master_password) {
     wallet.set_master_password(master_password);
     wallet.set_number_of_entries(0);
 
+    // serialize and call store_wallet
+    std::string serialized_protobuf;
+
+    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
+    const char* serialized_char = serialized_protobuf.c_str();
+    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
+
+    sgx_status_t store_status;
+    int store_ret;
+    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+
+    return 0;
 }
 
 public int ecall_list_wallet(const char* master_password) {
