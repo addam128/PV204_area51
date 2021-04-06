@@ -2,7 +2,7 @@
 #include "../app/ocalls.hpp"
 
 #include "sgx_tseal.h"
-//#include "sealing/sealing.h"
+#include "sealing/sealing.h"
 
 int ecall_create_wallet(const char* master_password) {
     // check if wallet already exists
