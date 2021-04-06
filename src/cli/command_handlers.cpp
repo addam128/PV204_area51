@@ -10,6 +10,7 @@ namespace commands {
         try {
             Password mp = Password();
             mp.with_prompt("Master password:")
+              .derive(true)
               .interact();
 
         } catch (const std::bad_alloc& ex) {
@@ -32,11 +33,13 @@ namespace commands {
             Password new_mp = Password();
 
             old_mp.with_prompt("Old master password:")
+                  .derive(true)
                   .interact();
 
             new_mp.with_prompt("New master password:")
                   .with_confirmation("Repeat new master password",
                    "Passwords do not match")
+                   .derive(true)
                   .interact();
 
         } catch (...) {
@@ -73,6 +76,7 @@ namespace commands {
                      .interact();
 
             master_pwd.with_prompt("Master password:")
+                       .derive(true)
                       .interact();
         } catch (const std::bad_alloc& ex) {
             std::cerr << "Could not get that, sorry." << ex.what() << std::endl;
@@ -106,6 +110,7 @@ namespace commands {
             Password master_pwd = Password();
 
             master_pwd.with_prompt("Master password:")
+                      .derive(true)
                       .interact();
         } catch (...) {
             std::cerr << "Could not get that, sorry." << std::endl;
@@ -128,6 +133,7 @@ namespace commands {
             master_pwd.with_prompt("Master password for new facility:")
                       .with_confirmation("Repeat master password",
                        "Passwords do not match")
+                       .derive(true)
                        .interact();
         } catch (...) {
             std::cerr << "Could not get that, sorry." << std::endl;
