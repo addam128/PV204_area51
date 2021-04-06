@@ -11,6 +11,8 @@
 #include "error.hpp"
 #include "constants.hpp"
 
+typedef unsigned char byte;
+
 
 class Password {
 
