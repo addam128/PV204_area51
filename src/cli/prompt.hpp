@@ -22,9 +22,10 @@ public:
     }
 
     const Prompter& interact() {
-       
+        std::string answer;
         std::cout << _prompt << std::flush;
-        std::getline(std::cin, _answer);
+        std::getline(std::cin, answer);
+        _answer = answer.substr(0, MAX_SERVICE_N_USER_LEN);
         return *this;
     }
 

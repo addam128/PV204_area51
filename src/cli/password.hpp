@@ -21,6 +21,7 @@ private:
     std::string _confirmation_prompt;
     std::string _confirm_error;
     bool _confirm_flag;
+    bool _derivation_needed;
 
     int read_pwd(char*); // could be friend function, but meh
 
@@ -52,6 +53,11 @@ public:
     inline Password& with_prompt(std::string promptval) {
       
         _prompt = std::move(promptval);
+        return *this;
+    }
+
+    inline Password& derive(bool val) {
+        _derivation_needed = val;
         return *this;
     }
 
