@@ -1,6 +1,6 @@
 enclave {
     // includes
-    include "pwmanager.pb.h"
+    include "../simplevault/simplevault.hpp"
 
 
     // define ECALLs
@@ -14,7 +14,7 @@ enclave {
 
         // lists all (service, username) pairs stored in wallet
         public int ecall_list_wallet(
-            [in, string] const char* master_password,
+            [in, string] const char* master_password
         );
 
         // changes master password
@@ -41,7 +41,7 @@ enclave {
 
         // reads file and returns unsealed wallet (serialized in protobuf)
         int ecall_get_wallet(
-            [out, string] char* serialized_wallet
+            [in, out, string] char* serialized_wallet
         );
 
         // seals (already serialized to protobuf) wallet and stores it to file
