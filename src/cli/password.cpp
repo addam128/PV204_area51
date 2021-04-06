@@ -70,6 +70,8 @@ const Password& Password::interact() {
         (const char*)_pwd, std::strlen(_pwd),  salt,
         crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_SENSITIVE,
         crypto_pwhash_ALG_DEFAULT)) {
+            sodium_memzero(salt, crypto_pwhash_SALTBYTES);    
+            sodium_free(salt);
             throw new std::bad_alloc;
         }
 
