@@ -1,8 +1,8 @@
 #include <sodium.h>
-#include "cli/password.hpp"
-#include "cli/error.hpp"
+#include "../cli/password.hpp"
+#include "../cli/error.hpp"
 #include <sodium.h>
-#include "cli/terminal.hpp"
+#include "../cli/terminal.hpp"
 
 int main() {
     if (sodium_init() < 0) {
