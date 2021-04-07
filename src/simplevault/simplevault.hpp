@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../cli/constants.hpp"
 
 typedef unsigned char byte;
@@ -11,6 +13,6 @@ typedef struct Cell {
 
 typedef struct Vault {
     int cell_count;
-    Cell cells[100];
-    byte master_hash[MASTER_HASH_LEN];
+    Cell cells[VAULT_MAX];
+    byte master_hash[MASTER_HASH_LEN + 1];
 } Vault;

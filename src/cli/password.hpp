@@ -32,7 +32,8 @@ public:
         _prompt(),
         _confirmation_prompt(),
         _confirm_error(),
-        _confirm_flag(false) 
+        _confirm_flag(false),
+        _derivation_needed(false) 
     {
        
         _pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
