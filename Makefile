@@ -73,8 +73,8 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
-App_Cpp_Files := src/app/main.cpp src/app/ocalls.cpp
-App_Include_Paths := -Isrc/app -I$(SGX_SDK)/include -Isrc/cli -Isrc/protobuf
+App_Cpp_Files := src/app/main.cpp 
+App_Include_Paths := -Isrc/app -I$(SGX_SDK)/include -Isrc/cli -Isrc/protobuf -Isrc/simplevault
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -106,7 +106,7 @@ App_Name := area51
 
 ####### CLI settings ######
 
-Cli_Cpp_Files := src/cli/command_handlers.cpp src/cli/password.cpp
+Cli_Cpp_Files := src/cli/command_handlers.cpp src/cli/password.cpp src/cli/ocalls.cpp
 Cli_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes
 Cli_Cpp_Flags := $(App_C_Flags) -std=c++11
 Cli_Cpp_Objects := $(Cli_Cpp_Files:.cpp=.o)
@@ -129,7 +129,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 Enclave_Cpp_Files := src/enclave/enclave.cpp src/enclave/sealing/sealing.cpp
-Enclave_Include_Paths := -Isrc/enclave  -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
+Enclave_Include_Paths := -Isrc/enclave  -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Isrc/simplevault
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++03 -nostdinc++
@@ -178,25 +178,25 @@ endif
 
 ######## App Objects ########
 
-src/app/enclave_u.c: $(SGX_EDGER8R) src/enclave/enclave.edl
-	@cd src/app/ && $(SGX_EDGER8R) --untrusted ../enclave/enclave.edl --search-path ../enclave --search-path $(SGX_SDK)/include
+src/cli/enclave_u.c: $(SGX_EDGER8R) src/enclave/enclave.edl
+	@cd src/cli/ && $(SGX_EDGER8R) --untrusted ../enclave/enclave.edl --search-path ../enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
-src/app/enclave_u.o: src/app/enclave_u.c
-	@$(CXX) $(App_C_Flags) -c $< -o $@
+src/cli/enclave_u.o: src/cli/enclave_u.c
+	@$(CC) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
-src/app/%.o: src/app/%.cpp
-	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
-	@echo "CXX  <=  $<"
 
 src/cli/%.o: src/cli/%.cpp
 	@$(CXX) $(Cli_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
+src/app/%.o: src/app/%.cpp
+	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
 
-$(App_Name): src/app/enclave_u.o $(App_Cpp_Objects) $(Cli_Cpp_Objects) $(Proto_Cpp_Objects)
-	@$(CXX) $^ -c -o $@ $(App_Link_Flags)
+$(App_Name): src/cli/enclave_u.o $(App_Cpp_Objects) $(Cli_Cpp_Objects) $(Proto_Cpp_Objects)
+	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
 
@@ -207,7 +207,7 @@ src/enclave/enclave_t.c: $(SGX_EDGER8R) src/enclave/enclave.edl
 	@echo "GEN  =>  $@"
 
 src/enclave/enclave_t.o: src/enclave/enclave_t.c
-	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
+	@$(CC) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
 src/enclave/%.o: src/enclave/%.cpp
@@ -225,4 +225,4 @@ $(Signed_Enclave_Name): $(Enclave_Name)
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) src/app/enclave_u.* $(Enclave_Cpp_Objects) src/enclave/enclave_t.*
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) src/cli/enclave_u.* $(Enclave_Cpp_Objects) src/enclave/enclave_t.* $(Cli_Cpp_Objects)
