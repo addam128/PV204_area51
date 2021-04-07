@@ -11,6 +11,8 @@
 #include "error.hpp"
 #include "constants.hpp"
 
+typedef unsigned char byte;
+
 
 class Password {
 
@@ -21,6 +23,7 @@ private:
     std::string _confirmation_prompt;
     std::string _confirm_error;
     bool _confirm_flag;
+    bool _derivation_needed;
 
     int read_pwd(char*); // could be friend function, but meh
 
@@ -29,7 +32,8 @@ public:
         _prompt(),
         _confirmation_prompt(),
         _confirm_error(),
-        _confirm_flag(false) 
+        _confirm_flag(false),
+        _derivation_needed(false) 
     {
        
         _pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
@@ -52,6 +56,11 @@ public:
     inline Password& with_prompt(std::string promptval) {
       
         _prompt = std::move(promptval);
+        return *this;
+    }
+
+    inline Password& derive(bool val) {
+        _derivation_needed = val;
         return *this;
     }
 

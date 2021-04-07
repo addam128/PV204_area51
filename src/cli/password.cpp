@@ -30,6 +30,7 @@ int Password::read_pwd(char* buffer) {
     return 0;
 }
 
+
 const Password& Password::interact() {
 
     std::cout << _prompt << std::flush;
@@ -55,6 +56,32 @@ const Password& Password::interact() {
             throw new NotMatchingError(_confirm_error);
         }
         sodium_memzero(_confirm_pwd, MAX_PWD_LEN);
+    }
+    if (_derivation_needed) {
+
+        byte* salt = (byte*)sodium_allocarray(crypto_pwhash_SALTBYTES, 1);
+        byte* to_store = (byte*)sodium_allocarray(MASTER_HASH_LEN + 1, 1);
+        std::memset(to_store, 0 ,MASTER_HASH_LEN + 1);
+
+        crypto_generichash(salt, crypto_pwhash_SALTBYTES,
+        (byte*)_pwd, std::strlen(_pwd), nullptr, 0);
+
+        if (0 != crypto_pwhash(to_store, MASTER_HASH_LEN,
+        (const char*)_pwd, std::strlen(_pwd),  salt,
+        crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_SENSITIVE,
+        crypto_pwhash_ALG_DEFAULT)) {
+            sodium_memzero(salt, crypto_pwhash_SALTBYTES);    
+            sodium_free(salt);
+            throw new std::bad_alloc;
+        }
+
+        sodium_memzero(salt, crypto_pwhash_SALTBYTES);
+        sodium_memzero(_pwd, MAX_PWD_LEN + 1);
+
+        sodium_free(salt);
+        sodium_free(_pwd);
+
+        _pwd = (char*)to_store;
     }
 
     return *this;

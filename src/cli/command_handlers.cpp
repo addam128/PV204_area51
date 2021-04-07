@@ -2,7 +2,28 @@
 
 namespace commands {
 
-    void list() {
+    void list(sgx_enclave_id_t eid) {
+        try {
+            
+            Password master_pwd = Password();
+
+            master_pwd.with_prompt("Master password:")
+                       .derive(true)
+                       .interact();
+
+            int retval = 0;
+            sgx_status_t enclave_status = ecall_list_vault(eid, &retval, master_pwd.c_str());
+
+            printf("%d", retval);
+
+        } catch (...) {
+            std::cerr << "Could not get that, sorry." << std::endl;
+            return ;
+        }
+    }
+    
+
+    void search(sgx_enclave_id_t eid) {
        
         Prompter service_p = Prompter();
         service_p.with_prompt("Service to search for:")
@@ -10,7 +31,14 @@ namespace commands {
         try {
             Password mp = Password();
             mp.with_prompt("Master password:")
+              .derive(true)
               .interact();
+
+            int retval = 0;
+            sgx_status_t enclave_status = ecall_list_entry(
+                eid, &retval, mp.c_str(),  service_p.c_str());
+
+            printf("%d", retval);
 
         } catch (const std::bad_alloc& ex) {
             std::cerr << "Could not get that, sorry." << ex.what() << std::endl;
@@ -18,13 +46,10 @@ namespace commands {
         } catch (...) {
             std::cerr << "other error" << std::endl;
         }
-
-        //vec =  ecall_list(service_p.c_str(), mp.c_str());
-        // print em'
     }
 
 
-    void change_master() {
+    void change_master(sgx_enclave_id_t eid) {
        
         try {
            
@@ -32,24 +57,28 @@ namespace commands {
             Password new_mp = Password();
 
             old_mp.with_prompt("Old master password:")
+                  .derive(true)
                   .interact();
 
             new_mp.with_prompt("New master password:")
                   .with_confirmation("Repeat new master password",
                    "Passwords do not match")
-                  .interact();
+                   .derive(true)
+                   .interact();
+            
+            int retval = 0;
+            sgx_status_t enclave_status = ecall_change_master_password(
+                eid, &retval, old_mp.c_str(), new_mp.c_str()); // TODO error handling
 
         } catch (...) {
             std::cerr << "Could not get that, sorry." << std::endl;
             return ;
         }
-
-        //ecall_change_master(old_mp.c_str(), new_mp.c_str())
     }
 
 
 
-    void new_entry() {
+    void new_entry(sgx_enclave_id_t eid) {
 
         Prompter service_p = Prompter();
         Prompter user_p = Prompter();
@@ -59,8 +88,7 @@ namespace commands {
 
         user_p.with_prompt("For username:")
               .interact();
-
-        std::cout << service_p.c_str() << " " << user_p.c_str() << std::endl; 
+ 
 
         try {
 
@@ -73,24 +101,31 @@ namespace commands {
                      .interact();
 
             master_pwd.with_prompt("Master password:")
+                      .derive(true)
                       .interact();
+
+            int retval = 0; 
+            sgx_status_t enclave_status = ecall_add_entry(
+                eid,
+                &retval,
+                master_pwd.c_str(),
+                service_p.c_str(),
+                user_p.c_str(),
+                service_pwd.c_str()
+            );
+
+            printf("%d", retval);
         } catch (const std::bad_alloc& ex) {
             std::cerr << "Could not get that, sorry." << ex.what() << std::endl;
             return ;
         } catch (...) {
             std::cerr << "other error" << std::endl;
         }
-
-        /*ecall_new_entry(
-            service_p.c_str(),
-            user_p.c_str(),
-            service_pwd.c_str(),
-            master_pwd.c_str()
-        );*/
+    
     }
 
 
-    void remove_entry() {
+    void remove_entry(sgx_enclave_id_t eid) {
 
         Prompter service_p = Prompter();
         Prompter user_p = Prompter();
@@ -106,35 +141,44 @@ namespace commands {
             Password master_pwd = Password();
 
             master_pwd.with_prompt("Master password:")
+                      .derive(true)
                       .interact();
+                
+            int retval = 0;
+            /*sgx_status_t enclave_status = ecall_remove_entry(
+                eid,
+                &retval,
+                service_p.c_str(),
+                user_p.c_str(),
+                master_pwd.c_str()
+            );*/                                       //unimplemented!
         } catch (...) {
             std::cerr << "Could not get that, sorry." << std::endl;
             return ;
         }
-
-        /*ecall_remove_entry(
-            service_p.c_str(),
-            user_p.c_str(),
-            master_pwd.c_str()
-        );*/
     }
 
-    void create_facility() {
+    void create_facility(sgx_enclave_id_t eid) {
         
         try {
             
             Password master_pwd = Password();
 
             master_pwd.with_prompt("Master password for new facility:")
-                      .with_confirmation("Repeat master password",
+                      .with_confirmation("Repeat master password:",
                        "Passwords do not match")
+                       .derive(true)
                        .interact();
+
+            int retval = 0;
+            sgx_status_t enclave_status = ecall_create_vault(eid, &retval, master_pwd.c_str());
+
+            printf("%d", retval);
+
         } catch (...) {
             std::cerr << "Could not get that, sorry." << std::endl;
             return ;
         }
-
-        //ecall_new_facility(master_pwd.c_str());
     }
 
     void print_help() {
@@ -142,7 +186,8 @@ namespace commands {
                     << "\tnew - create new password vault\n"
                     << "\tadd - add new password to vault\n"
                     << "\tremove - remove password entry from vault\n"
-                    << "\tlist - show availablle usernames for given service\n"
+                    << "\tlist - show all service-username pairs\n"
+                    << "\tsearch - show availablle usernames for given service\n"
                     << "\tchange - change the master password\n"
                     << "\texit - exit program\n";
     }

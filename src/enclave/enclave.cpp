@@ -1,174 +1,172 @@
-#include "pwmanager.pb.h"
 #include <string.h>
+#include "enclave_t.h"
 
 #include "sgx_tseal.h"
 #include "sealing/sealing.h"
+#include "../cli/constants.hpp"
 
-int ecall_create_wallet(const char* master_password) {
-    // check if wallet already exists
-    sgx_status_t is_wallet_status;
-    int is_wallet_ret;
-    is_wallet_status = ocall_is_wallet(&is_wallet_ret);
-    if (is_wallet_ret != 0) {
-        return -1 // TODO: Add proper error codes
+int ecall_create_vault(const char* master_hash) {
+    // check if vault already exists
+    sgx_status_t is_vault_status;
+    int is_vault_ret;
+    is_vault_status = ocall_vault_exists(&is_vault_ret);
+    if (is_vault_ret != 0) {
+        return -1; // TODO: Add proper error codes
     }
 
-    // create new wallet
-    Wallet wallet;
-    wallet.set_master_password(master_password);
-    wallet.set_number_of_entries(0);
+    // create new vault
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    vault->cell_count = 0;
+    memcpy(vault->master_hash, master_hash, MASTER_HASH_LEN);
+    int retval;
+    ocall_print_credentials(&retval, "saved", "", (char*)vault->master_hash);
 
-    // serialize and call store_wallet
-    std::string serialized_protobuf;
-
-    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
-    const char* serialized_char = serialized_protobuf.c_str();
-    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
-
+    // seal and store
     sgx_status_t store_status;
     int store_ret;
-    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+    store_ret = ecall_store_vault(vault, sizeof(Vault)); //TODO: error handling
+    free(vault);
 
-    return 0;
+    return store_ret;
 }
 
-int ecall_list_wallet(const char* master_password) {
-    // load serialized wallet
-    sgx_status_t get_wallet_status;
-    int get_wallet_ret;
-    const char*  serialized_wallet;
-    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
+int ecall_list_vault(const char* master_hash) {
+    // load serialized vault
+    sgx_status_t get_vault_status;
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    size_t vault_size = sizeof(Vault);
+    int get_vault_ret;
+    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
 
-    // deserialize wallet
-    std::string serialized_wallet_string(serialized_wallet);
-    Wallet wallet;
-    wallet.ParseFromString(serialized_wallet_string);
 
     // check master password
-    if (wallet.master_password().compare(std::string pass(master_password)) != 0) {
-        free(serialized_wallet);
+    if (memcmp(vault->master_hash, master_hash, MASTER_HASH_LEN) != 0) {
+        free(vault);
         return -1;
     }
-
+    int retval = 0;
     //TODO: iterate through entries and call ocall_print_credentials on each
+    for (int i = 0; i < vault->cell_count; ++i) {
+        ocall_print_credentials(&retval, vault->cells[i]._service, vault->cells[i]._username, NULL);   // TODO error check
+        
+    }
 
-    free(serialized_wallet);
+    free(vault);
     return 0;
 }
 
-int ecall_change_master_password(const char* old_password, const char* new_password) {
-    // load serialized wallet
-    sgx_status_t get_wallet_status;
-    int get_wallet_ret;
-    const char*  serialized_wallet;
-    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
+int ecall_change_master_password(const char* old_master_hash, const char* new_master_hash) {
+    // load serialized vault
+    sgx_status_t get_vault_status;
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    size_t vault_size = sizeof(Vault);
+    int get_vault_ret;
+    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
 
-    // deserialize wallet
-    std::string serialized_wallet_string(serialized_wallet);
-    Wallet wallet;
-    wallet.ParseFromString(serialized_wallet_string);
 
     // check master password
-    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
-        free(serialized_wallet);
-        return -1;
+    if (memcmp(vault->master_hash, old_master_hash, MASTER_HASH_LEN) != 0) {
+        free(vault);
+    return -1;
     }
 
-    wallet.set_master_password(new_password);
+    memcpy(vault->master_hash, new_master_hash, MASTER_HASH_LEN);
 
-    // serialize and call store_wallet
-    std::string serialized_protobuf;
-
-    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
-    const char* serialized_char = serialized_protobuf.c_str();
-    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
-
+    // seal and store
     sgx_status_t store_status;
     int store_ret;
-    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+    store_ret = ecall_store_vault( vault, sizeof(Vault)); //TODO: error handling
+    
+    free(vault);
 
     return 0;
 }
 
-int ecall_add_entry(const char* master_password, const char* service, const char* username, const char* password) {
-    // load serialized wallet
-    sgx_status_t get_wallet_status;
-    int get_wallet_ret;
-    const char*  serialized_wallet;
-    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
-
-    // deserialize wallet
-    std::string serialized_wallet_string(serialized_wallet);
-    Wallet wallet;
-    wallet.ParseFromString(serialized_wallet_string);
-
-    // check master password
-    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
-        free(serialized_wallet);
-        return -1;
+int ecall_add_entry(const char* master_hash, const char* service, const char* username, const char* password) {
+    // load serialized vault
+    sgx_status_t get_vault_status;
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    size_t vault_size = sizeof(Vault);
+    int get_vault_ret;
+    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
+    if (get_vault_ret != 0) {
+        return -3;
     }
 
-    //TODO: Add new entry
 
-    // serialize and call store_wallet
-    std::string serialized_protobuf;
+    // check master password
+    if (memcmp(vault->master_hash, master_hash, MASTER_HASH_LEN) != 0) {
+        free(vault);
+        return -1;
+    }
+    if (vault->cell_count >= VAULT_MAX) {
+        free(vault);
+        return 2;
+    }
+    strncpy(vault->cells[vault->cell_count]._service, service, MAX_SERVICE_N_USER_LEN);
+    strncpy(vault->cells[vault->cell_count]._username, username, MAX_SERVICE_N_USER_LEN);
+    strncpy(vault->cells[vault->cell_count]._password, password, MAX_PWD_LEN);
+    vault->cell_count += 1;  
 
-    wallet.SerializeToString(&serialized_protobuf); //TODO: error handling
-    const char* serialized_char = serialized_protobuf.c_str();
-    size_t sealing_size = sizeof(sgx_sealed_data_t) + serialized_protobuf.size() + 1;
-
+    // seal and store
     sgx_status_t store_status;
     int store_ret;
-    store_status = ecall_store_wallet(&store_ret); //TODO: error handling
+    store_ret = ecall_store_vault(vault, sizeof(Vault)); //TODO: error handling
+
+    free(vault);
 
     return 0;
 }
 
-int ecall_list_entry(const char* master_password, const char* service) {
-    // load serialized wallet
-    sgx_status_t get_wallet_status;
-    int get_wallet_ret;
-    const char*  serialized_wallet;
-    get_wallet_status = ecall_get_wallet(&get_wallet_ret, serialized_wallet); //TODO: error handling
-
-    // deserialize wallet
-    std::string serialized_wallet_string(serialized_wallet);
-    Wallet wallet;
-    wallet.ParseFromString(serialized_wallet_string);
+int ecall_list_entry(const char* master_hash, const char* service) {
+    // load serialized vault
+    sgx_status_t get_vault_status;
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    size_t vault_size = sizeof(Vault);
+    int get_vault_ret;
+    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
 
     // check master password
-    if (wallet.master_password().compare(std::string pass(old_password)) != 0) {
-        free(serialized_wallet);
+    if (memcmp(vault->master_hash, master_hash, MASTER_HASH_LEN) != 0) {
+        free(vault);
         return -1;
     }
 
+    int retval = 0;
     // TODO: list entry (call ocall_print_credentials)
+    for (int i = 0; i < vault->cell_count; ++i) {
+        if (strncmp(service, vault->cells[i]._service, MAX_SERVICE_N_USER_LEN) == 0) {
+            ocall_print_credentials(&retval, service, vault->cells[i]._username, NULL);   // TODO error check
+        }
+    }
 
-    free(serialized_wallet);
+    free(vault);
     return 0;
 }
 
-// seal and save wallet to file
+// seal and save vault to file
 //TODO: see page 94 of the following link for length calculation https://download.01.org/intel-sgx/linux-1.8/docs/Intel_SGX_SDK_Developer_Reference_Linux_1.8_Open_Source.pdf
-int ecall_store_wallet(const char* serialized_wallet, size_t serialized_wallet_size) {
-    // seal wallet
+int ecall_store_vault(Vault* vault, size_t vault_size) {
+    // seal vault
     sgx_status_t sealing_status;
 
+    size_t sealed_size = sizeof(sgx_sealed_data_t) + vault_size;
     uint8_t* sealed_data = (uint8_t*)malloc(sealed_size);
-    sealing_status = seal_wallet(); // TODO: implement sealing
+    sealing_status = seal_vault(vault, (sgx_sealed_data_t*) sealed_data, sealed_size);
+    //free(vault);
     if (sealing_status != SGX_SUCCESS) {
         free(sealed_data);
-        return ERR_FAIL_SEAL;
+        return (long)sealing_status;
     }
 
-    // save sealed wallet
+    // save sealed vault
     sgx_status_t save_to_file_status;
     int save_to_file_ret;
 
-    save_to_file_status = ocall_save_to_file(&ocall_ret, sealed_data, sealed_size);
+    save_to_file_status = ocall_save_to_file(&save_to_file_ret, sealed_data, sealed_size);
     free(sealed_data);
-    if (save_to_file_ret != 0 || save_to_file_ret != SGX_SUCCESS) {
-        return -1;
+    if (save_to_file_ret != 0 || save_to_file_status != SGX_SUCCESS) {
+        return save_to_file_ret;
     }
 
     return 0;
@@ -176,31 +174,21 @@ int ecall_store_wallet(const char* serialized_wallet, size_t serialized_wallet_s
 
 // read from file and unseal
 //TODO: see page 94 of the following link for length calculation https://download.01.org/intel-sgx/linux-1.8/docs/Intel_SGX_SDK_Developer_Reference_Linux_1.8_Open_Source.pdf
-int ecall_get_wallet(char* serialized_wallet) {
-    // get maximal possible wallet size
-    sgx_status_t wallet_size_status;
-    int wallet_size_ret;
-    size_t wallet_size;
-    wallet_size_status = ocall_get_wallet_size(&wallet_size_ret, &wallet_size);
-    size_t sealed_size = sizeof(sgx_sealed_data_t) + wallet_size();
+int ecall_get_vault(Vault* vault, size_t vault_size) {
+    sgx_status_t load_from_file;
+    int load_from_file_ret;
+    // load vault
+    size_t sealed_size  = sizeof(sgx_sealed_data_t) + vault_size;
+    uint8_t* sealed_data = (uint8_t*) malloc(sealed_size);
+    load_from_file = ocall_load_from_file(&load_from_file_ret, sealed_data, sealed_size); // TODO: error handling
 
-    // load wallet
-    char* sealed_wallet = (char*) malloc(sealed_size);
-    sgx_status_t load_wallet_status;
-    int load_wallet_ret;
-    load_wallet_status = ocall_load_from_file(&load_wallet_ret, sealed_wallet, sealed_size);
-
-    // unseal loaded wallet
-    size_t serialized_wallet_size = 0; // TODO: Add calculation
-    sgx_status_t sealing_status = unseal_wallet((sgx_sealed_data_t*) sealed_wallet, serialized_wallet, serialized_wallet_size);
-    free(sealed_wallet);
+    // unseal loaded vault
+    sgx_status_t sealing_status = unseal_vault((sgx_sealed_data_t*) sealed_data, vault, vault_size);
+    free(sealed_data);
     if (sealing_status != SGX_SUCCESS) {
-        free(serialized_wallet);
+        free(vault);
         return -1;
     }
 
     return 0;
 }
-
-
-
