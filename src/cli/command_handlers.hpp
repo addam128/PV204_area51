@@ -4,6 +4,7 @@
 #include "prompt.hpp"
 #include "enclave_u.h"
 #include "sgx_urts.h"
+#include "error.hpp"
 
 namespace commands {
 

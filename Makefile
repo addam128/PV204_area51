@@ -108,13 +108,13 @@ App_Name := area51
 
 Cli_Cpp_Files := src/cli/command_handlers.cpp src/cli/password.cpp src/cli/ocalls.cpp
 Cli_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes
-Cli_Cpp_Flags := $(App_C_Flags) -std=c++11
+Cli_Cpp_Flags := $(App_C_Flags) -std=c++17
 Cli_Cpp_Objects := $(Cli_Cpp_Files:.cpp=.o)
 
 ###### protobuf settings ########
 Proto_Cpp_Files := src/protobuf/pwmanager.pb.cc
 Proto_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes
-Proto_Cpp_Flags := $(App_C_Flags) -std=c++11
+Proto_Cpp_Flags := $(App_C_Flags) -std=c++17
 Proto_Cpp_Objects := $(Proto_Cpp_Files:.cpp=.o)
 
 ######## Enclave Settings ########
@@ -207,7 +207,7 @@ src/enclave/enclave_t.c: $(SGX_EDGER8R) src/enclave/enclave.edl
 	@echo "GEN  =>  $@"
 
 src/enclave/enclave_t.o: src/enclave/enclave_t.c
-	@$(CC) $(Enclave_Cpp_Flags) -c $< -o $@
+	@$(CC) $(Enclave_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
 src/enclave/%.o: src/enclave/%.cpp
