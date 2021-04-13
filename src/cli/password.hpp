@@ -26,6 +26,8 @@ private:
     bool _derivation_needed;
 
     int read_pwd(char*); // could be friend function, but meh
+    void confirm_password();
+    void derive_password();
 
 public:
     Password():
@@ -39,7 +41,7 @@ public:
         _pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
         _confirm_pwd = (char*)sodium_allocarray(MAX_PWD_LEN + 1, sizeof(char));
         if (_pwd == nullptr || _confirm_pwd == nullptr) {
-            throw new std::bad_alloc;
+            throw std::bad_alloc();
         }
         std::memset(_pwd, 0, MAX_PWD_LEN + 1); 
         std::memset(_confirm_pwd, 0, MAX_PWD_LEN + 1); 

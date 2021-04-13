@@ -34,55 +34,71 @@ int Password::read_pwd(char* buffer) {
 const Password& Password::interact() {
 
     std::cout << _prompt << std::flush;
+    
     if (read_pwd(_pwd) < 0) {
-        throw new std::ios_base::failure("whoops");
+        throw std::ios_base::failure("whoops");
     }
+    
     if (std::strlen(_pwd) < MIN_PWD_LEN) {
-        std::cout<< _pwd << std::endl;
-        throw new PwdTooShort("The password is not long enough");
+        throw PwdTooShort("The password is not long enough. Minimum is ");
     }
+    
     std::cout << std::endl;
-    if (_confirm_flag) {
-        std::cout << _confirmation_prompt << std::flush;
-        if (read_pwd(_confirm_pwd) < 0) {
-            throw new std::ios_base::failure("whoops");
-        }
-        if (std::strlen(_confirm_pwd) < MIN_PWD_LEN) {
-        throw new PwdTooShort("The password is not long enough");
-    }
-        std::cout << std::endl;
-        if (!(sodium_memcmp(_pwd, _confirm_pwd, MAX_PWD_LEN) != -1)) {
-            std::cout << _confirm_error << std::endl;
-            throw new NotMatchingError(_confirm_error);
-        }
-        sodium_memzero(_confirm_pwd, MAX_PWD_LEN);
-    }
-    if (_derivation_needed) {
+    
+    if (_confirm_flag) 
+        confirm_password();
 
-        byte* salt = (byte*)sodium_allocarray(crypto_pwhash_SALTBYTES, 1);
-        byte* to_store = (byte*)sodium_allocarray(MASTER_HASH_LEN + 1, 1);
-        std::memset(to_store, 0 ,MASTER_HASH_LEN + 1);
-
-        crypto_generichash(salt, crypto_pwhash_SALTBYTES,
-        (byte*)_pwd, std::strlen(_pwd), nullptr, 0);
-
-        if (0 != crypto_pwhash(to_store, MASTER_HASH_LEN,
-        (const char*)_pwd, std::strlen(_pwd),  salt,
-        crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_SENSITIVE,
-        crypto_pwhash_ALG_DEFAULT)) {
-            sodium_memzero(salt, crypto_pwhash_SALTBYTES);    
-            sodium_free(salt);
-            throw new std::bad_alloc;
-        }
-
-        sodium_memzero(salt, crypto_pwhash_SALTBYTES);
-        sodium_memzero(_pwd, MAX_PWD_LEN + 1);
-
-        sodium_free(salt);
-        sodium_free(_pwd);
-
-        _pwd = (char*)to_store;
-    }
+    if (_derivation_needed) 
+        derive_password();
 
     return *this;
+}
+
+void Password::derive_password() {
+
+    byte* salt = (byte*)sodium_allocarray(crypto_pwhash_SALTBYTES, 1);
+    byte* to_store = (byte*)sodium_allocarray(MASTER_HASH_LEN + 1, 1);
+    std::memset(to_store, 0 ,MASTER_HASH_LEN + 1);
+
+    crypto_generichash(salt, crypto_pwhash_SALTBYTES,
+        (byte*)_pwd, std::strlen(_pwd), nullptr, 0);
+
+    if (0 != crypto_pwhash(to_store, MASTER_HASH_LEN,
+        (const char*)_pwd, std::strlen(_pwd),  salt,
+        crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_SENSITIVE,
+        crypto_pwhash_ALG_DEFAULT))
+    {
+        sodium_memzero(salt, crypto_pwhash_SALTBYTES);    
+        sodium_free(salt);
+        throw std::bad_alloc();
+    }
+
+    sodium_memzero(salt, crypto_pwhash_SALTBYTES);
+    sodium_memzero(_pwd, MAX_PWD_LEN + 1);
+
+    sodium_free(salt);
+    sodium_free(_pwd);
+
+    _pwd = (char*)to_store;
+}
+
+void Password::confirm_password() {
+    
+    std::cout << _confirmation_prompt << std::flush;
+    
+    if (read_pwd(_confirm_pwd) < 0) {
+        throw std::ios_base::failure("whoops");
+    }
+    
+    if (std::strlen(_confirm_pwd) < MIN_PWD_LEN) {
+        throw PwdTooShort("The password is not long enough. Minimum is ");
+    }
+
+    std::cout << std::endl;
+    
+    if (!(sodium_memcmp(_pwd, _confirm_pwd, MAX_PWD_LEN) != -1)) {
+        throw NotMatchingError(_confirm_error);
+    }
+
+    sodium_memzero(_confirm_pwd, MAX_PWD_LEN);
 }
