@@ -2,6 +2,8 @@
 
 namespace commands {
 
+    std::string chosen_vault = "";
+
     void list(sgx_enclave_id_t eid) {
         
         Password master_pwd = Password();
@@ -13,6 +15,29 @@ namespace commands {
         int retval = 0;
         sgx_status_t enclave_status = ecall_list_vault(eid, &retval, master_pwd.c_str());
 
+    }
+
+    void choose_vault() {
+
+        Prompter prompt = Prompter();
+
+        prompt.with_prompt("Vault to use:").interact();
+
+        prompt.answer_push(VAULT_FILE_EXT);
+
+        set_vault(prompt.answer());
+    }
+
+
+    void set_vault(const std::string& target) {
+
+        std::ifstream file(target, std::ios::in | std::ios::binary);
+        if (file.fail()) {
+            std::cerr << "Vault does not exist!" << std::endl;
+            return;
+        }
+
+        chosen_vault = target;
     }
     
 
@@ -122,6 +147,12 @@ namespace commands {
     }
 
     void create_facility(sgx_enclave_id_t eid) {
+
+        Prompter prompt = Prompter();
+
+        prompt.with_prompt("Vault name:").interact();
+
+        prompt.answer_push(VAULT_FILE_EXT);
             
         Password master_pwd = Password();
 
@@ -130,6 +161,8 @@ namespace commands {
                     "Passwords do not match.")
                     .derive(true)
                     .interact();
+
+        chosen_vault = prompt.answer();
 
         int retval = 0;
         sgx_status_t enclave_status = ecall_create_vault(eid, &retval, master_pwd.c_str());
@@ -143,6 +176,7 @@ namespace commands {
                     << "\tlist - show all service-username pairs\n"
                     << "\tsearch - show availablle usernames for given service\n"
                     << "\tchange - change the master password\n"
-                    << "\texit - exit program\n";
+                    << "\texit - exit program\n"
+                    << "\tchoose - choose another vault file\n";
     }
 }

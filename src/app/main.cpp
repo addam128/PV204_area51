@@ -7,7 +7,7 @@
 
 const char* ENCLAVE_FILE = "src/enclave.signed.so";
 
-int main() {
+int main(int argc, char* argv[]) {
     if (sodium_init() < 0) {
         std::cerr << "panic! Could not init crypto library, exiting!" << std::endl;
         exit(1);
@@ -25,7 +25,13 @@ int main() {
         return -1;
     }
 
-    Term::spawn(eid);
+    std::string vault_file = "";
+    
+    if (argc > 1) {
+        vault_file += argv[1];
+    }
+
+    Term::spawn(eid, vault_file);
 
     enclave_status = sgx_destroy_enclave(eid);
     if(enclave_status != SGX_SUCCESS) {

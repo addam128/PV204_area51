@@ -6,29 +6,45 @@
 
 class Term {
 public:
-    static void spawn(sgx_enclave_id_t eid) {
+    static void spawn(sgx_enclave_id_t eid, const std::string& vault_file) {
+
+        if (vault_file != "") {
+            commands::set_vault(vault_file);
+        }
+
         Prompter p = Prompter();
-        p.with_prompt("Area51 $>: ");
         for (;;) {
             try {
-                p.interact();
+                p.with_prompt("Area51 (" + ((commands::chosen_vault != "") ? commands::chosen_vault : std::string("no vault is chosen")) + ") $>: ")
+                 .interact();
 
                 if (p.answer() == "new") 
                     commands::create_facility(eid);
+                
                 else if (p.answer() == "add") 
                     commands::new_entry(eid);
+                
                 else if (p.answer() == "remove")
                     commands::remove_entry(eid);
+                
                 else if (p.answer() == "change")
                     commands::change_master(eid);
+                
                 else if (p.answer() == "list")
                     commands::list(eid);
+                
                 else if (p.answer() == "search")
                     commands::search(eid);
+                
                 else if (p.answer() == "exit")
                     return;
+                
                 else if (p.answer() == "help")
                     commands::print_help();
+                
+                else if (p.answer() == "choose")
+                    commands::choose_vault();
+                
                 else
                     std::cout << "Unknown option." << std::endl;
             
