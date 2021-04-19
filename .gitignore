@@ -36,4 +36,4 @@
 src/.vscode/
 
 #vault file
-vault.gcm
+*.gcm

@@ -19,7 +19,6 @@ int ecall_create_vault(const char* master_hash) {
     vault->cell_count = 0;
     memcpy(vault->master_hash, master_hash, MASTER_HASH_LEN);
     int retval;
-    ocall_print_credentials(&retval, "saved", "", (char*)vault->master_hash);
 
     // seal and store
     sgx_status_t store_status;

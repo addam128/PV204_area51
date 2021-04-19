@@ -7,6 +7,6 @@
 #define MASTER_HASH_LEN  MAX_PWD_LEN
 #define VAULT_MAX 100
 
-#define VAULT_FILE "vault.gcm"
+#define VAULT_FILE_EXT ".gcm"
 
 #endif
