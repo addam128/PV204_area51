@@ -14,6 +14,9 @@ namespace commands {
 
         int retval = 0;
         sgx_status_t enclave_status = ecall_list_vault(eid, &retval, master_pwd.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault listing failed.\n";
+        }
 
     }
 
@@ -55,6 +58,9 @@ namespace commands {
         int retval = 0;
         sgx_status_t enclave_status = ecall_list_entry(
             eid, &retval, mp.c_str(),  service_p.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault search failed.\n";
+        }
 
     }
 
@@ -76,7 +82,10 @@ namespace commands {
         
         int retval = 0;
         sgx_status_t enclave_status = ecall_change_master_password(
-            eid, &retval, old_mp.c_str(), new_mp.c_str()); // TODO error handling
+            eid, &retval, old_mp.c_str(), new_mp.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Password change failed.\n";
+        }
     }
 
 
@@ -114,7 +123,10 @@ namespace commands {
             user_p.c_str(),
             service_pwd.c_str()
         );
-    
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Adding entry failed.\n";
+        }
+
     }
 
 
@@ -144,6 +156,9 @@ namespace commands {
             user_p.c_str(),
             master_pwd.c_str()
         );*/                                       //unimplemented!
+//        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+//            std::cout << "Vault listing failed.\n";
+//        }
     }
 
     void create_facility(sgx_enclave_id_t eid) {
@@ -166,6 +181,9 @@ namespace commands {
 
         int retval = 0;
         sgx_status_t enclave_status = ecall_create_vault(eid, &retval, master_pwd.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault creation failed.\n";
+        }
     }
 
     void print_help() {

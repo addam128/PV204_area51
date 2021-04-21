@@ -1,6 +1,7 @@
 #pragma once
 
 #include "password.hpp"
+#include "utils.hpp"
 #include "prompt.hpp"
 #include "enclave_u.h"
 #include "sgx_urts.h"
