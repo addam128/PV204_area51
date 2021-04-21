@@ -119,7 +119,7 @@ int ecall_add_entry(const char* master_hash, const char* service, const char* us
     // seal and store
     sgx_status_t store_status;
     int store_ret;
-    store_ret = ecall_store_vault(vault, sizeof(Vault)); //TODO: error handling
+    store_ret = ecall_store_vault(vault, sizeof(Vault));
     free(vault);
     if (store_ret != RET_SUCCESS) {
         return store_ret;
@@ -134,7 +134,7 @@ int ecall_list_entry(const char* master_hash, const char* service) {
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
-    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
+    get_vault_ret = ecall_get_vault(vault, vault_size);
     if (get_vault_ret != RET_SUCCESS) {
         return get_vault_ret;
     }
@@ -148,11 +148,53 @@ int ecall_list_entry(const char* master_hash, const char* service) {
     int retval = 0;
     for (int i = 0; i < vault->cell_count; ++i) {
         if (strncmp(service, vault->cells[i]._service, MAX_SERVICE_N_USER_LEN) == 0) {
-            ocall_print_credentials(&retval, service, vault->cells[i]._username, NULL);   // TODO error check
+            ocall_print_credentials(&retval, service, vault->cells[i]._username, vault->cells[i]._password);   // TODO error check
         }
     }
 
     free(vault);
+    return RET_SUCCESS;
+}
+
+int ecall_change_entry(const char* master_hash, const char* service, const char* username, const char* password) {
+    // load serialized vault
+    sgx_status_t get_vault_status;
+    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    size_t vault_size = sizeof(Vault);
+    int get_vault_ret;
+    get_vault_ret = ecall_get_vault(vault, vault_size);
+    if (get_vault_ret != RET_SUCCESS) {
+        return get_vault_ret;
+    }
+
+    // check master password
+    if (memcmp(vault->master_hash, master_hash, MASTER_HASH_LEN) != 0) {
+        free(vault);
+        return ERR_INVALID_MASTER_PASSWORD;
+    }
+
+    bool found = false;
+    for (int i = 0; i < vault->cell_count; ++i) {
+        if (strncmp(service, vault->cells[i]._service, MAX_SERVICE_N_USER_LEN) == 0 && strncmp(username, vault->cells[i]._username, MAX_SERVICE_N_USER_LEN) == 0) {
+            found = true;
+            strncpy(vault->cells[i]._password, password, MAX_PWD_LEN);
+        }
+    }
+
+    if (!found) {
+        free(vault);
+        return ERR_SERVICE_USERNAME_NOT_FOUND;
+    }
+
+    // seal and store
+    sgx_status_t store_status;
+    int store_ret;
+    store_ret = ecall_store_vault(vault, sizeof(Vault));
+    free(vault);
+    if (store_ret != RET_SUCCESS) {
+        return store_ret;
+    }
+
     return RET_SUCCESS;
 }
 
