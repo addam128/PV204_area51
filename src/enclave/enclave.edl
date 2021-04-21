@@ -45,6 +45,13 @@ enclave {
             [in, string] const char* password
         );
 
+        // remove existing entry
+        public int ecall_remove_entry(
+            [in, size=64] const char* master_hash,
+            [in, string] const char* service,
+            [in, string] const char* username
+        );
+
         // PRIVATE
 
         // reads file and returns unsealed vault (serialized in protobuf)

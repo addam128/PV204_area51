@@ -149,16 +149,16 @@ namespace commands {
                     .interact();
             
         int retval = 0;
-        /*sgx_status_t enclave_status = ecall_remove_entry(
+        sgx_status_t enclave_status = ecall_remove_entry(
             eid,
             &retval,
+            master_pwd.c_str(),
             service_p.c_str(),
-            user_p.c_str(),
-            master_pwd.c_str()
-        );*/                                       //unimplemented!
-//        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
-//            std::cout << "Vault listing failed.\n";
-//        }
+            user_p.c_str()
+        );
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Entry removal failed.\n";
+        }
     }
 
     void change_entry(sgx_enclave_id_t eid) {
