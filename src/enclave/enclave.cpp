@@ -239,9 +239,9 @@ int ecall_remove_entry(const char* master_hash, const char* service, const char*
     }
 
     // empty last cell
-    strncpy(vault->cells[vault->cell_count]._service, "", MAX_SERVICE_N_USER_LEN);
-    strncpy(vault->cells[vault->cell_count]._username, "", MAX_SERVICE_N_USER_LEN);
-    strncpy(vault->cells[vault->cell_count]._password, "", MAX_PWD_LEN);
+    memset(vault->cells[vault->cell_count]._service, 0, MAX_SERVICE_N_USER_LEN);
+    memset(vault->cells[vault->cell_count]._username, 0, MAX_SERVICE_N_USER_LEN);
+    memset(vault->cells[vault->cell_count]._password, 0, MAX_PWD_LEN);
 
     // decrease size
     vault->cell_count--;
