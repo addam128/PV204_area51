@@ -91,7 +91,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags) -std=c++11
-App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread -lsodium -lprotobuf
+App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread -lsodium
 
 ifneq ($(SGX_MODE), HW)
 	App_Link_Flags += -lsgx_uae_service_sim
@@ -111,11 +111,6 @@ Cli_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes
 Cli_Cpp_Flags := $(App_C_Flags) -std=c++17
 Cli_Cpp_Objects := $(Cli_Cpp_Files:.cpp=.o)
 
-###### protobuf settings ########
-#Proto_Cpp_Files := src/protobuf/pwmanager.pb.cc
-#Proto_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes
-#Proto_Cpp_Flags := $(App_C_Flags) -std=c++17
-#Proto_Cpp_Objects := $(Proto_Cpp_Files:.cpp=.o)
 
 ######## Enclave Settings ########
 
@@ -195,7 +190,7 @@ src/app/%.o: src/app/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(App_Name): src/cli/enclave_u.o $(App_Cpp_Objects) $(Cli_Cpp_Objects) $(Proto_Cpp_Objects)
+$(App_Name): src/cli/enclave_u.o $(App_Cpp_Objects) $(Cli_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
