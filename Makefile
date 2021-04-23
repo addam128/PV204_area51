@@ -31,7 +31,7 @@
 
 ######## SGX SDK Settings ########
 
-SGX_SDK ?= /home/adam/linux-sgx-driver/linux-sgx/linux/installer/bin/sgxsdk
+SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= SIM
 SGX_ARCH ?= x64
 
