@@ -14,6 +14,9 @@ namespace commands {
 
         int retval = 0;
         sgx_status_t enclave_status = ecall_list_vault(eid, &retval, master_pwd.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault listing failed.\n";
+        }
 
     }
 
@@ -55,6 +58,9 @@ namespace commands {
         int retval = 0;
         sgx_status_t enclave_status = ecall_list_entry(
             eid, &retval, mp.c_str(),  service_p.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault search failed.\n";
+        }
 
     }
 
@@ -76,7 +82,10 @@ namespace commands {
         
         int retval = 0;
         sgx_status_t enclave_status = ecall_change_master_password(
-            eid, &retval, old_mp.c_str(), new_mp.c_str()); // TODO error handling
+            eid, &retval, old_mp.c_str(), new_mp.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Password change failed.\n";
+        }
     }
 
 
@@ -114,7 +123,10 @@ namespace commands {
             user_p.c_str(),
             service_pwd.c_str()
         );
-    
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Adding entry failed.\n";
+        }
+
     }
 
 
@@ -137,13 +149,55 @@ namespace commands {
                     .interact();
             
         int retval = 0;
-        /*sgx_status_t enclave_status = ecall_remove_entry(
+        sgx_status_t enclave_status = ecall_remove_entry(
             eid,
             &retval,
+            master_pwd.c_str(),
             service_p.c_str(),
-            user_p.c_str(),
-            master_pwd.c_str()
-        );*/                                       //unimplemented!
+            user_p.c_str()
+        );
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Entry removal failed.\n";
+        }
+    }
+
+    void change_entry(sgx_enclave_id_t eid) {
+
+        Prompter service_p = Prompter();
+        Prompter user_p = Prompter();
+
+        service_p.with_prompt("For service:")
+                .interact();
+
+        user_p.with_prompt("For username:")
+                .interact();
+
+
+        Password service_pwd = Password();
+        Password master_pwd = Password();
+
+        service_pwd.with_prompt("New service password:")
+                .with_confirmation("Repeat new service password:",
+                                   "Passwords do not match.")
+                .interact();
+
+        master_pwd.with_prompt("Master password:")
+                .derive(true)
+                .interact();
+
+        int retval = 0;
+        sgx_status_t enclave_status = ecall_change_entry(
+                eid,
+                &retval,
+                master_pwd.c_str(),
+                service_p.c_str(),
+                user_p.c_str(),
+                service_pwd.c_str()
+        );
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Changing entry failed.\n";
+        }
+
     }
 
     void create_facility(sgx_enclave_id_t eid) {
@@ -166,6 +220,9 @@ namespace commands {
 
         int retval = 0;
         sgx_status_t enclave_status = ecall_create_vault(eid, &retval, master_pwd.c_str());
+        if (utils::is_error(retval) || enclave_status != SGX_SUCCESS) {
+            std::cout << "Vault creation failed.\n";
+        }
     }
 
     void print_help() {
@@ -173,8 +230,9 @@ namespace commands {
                     << "\tnew - create new password vault\n"
                     << "\tadd - add new password to vault\n"
                     << "\tremove - remove password entry from vault\n"
+                    << "\tchange_service - change service password for given service\n"
                     << "\tlist - show all service-username pairs\n"
-                    << "\tsearch - show availablle usernames for given service\n"
+                    << "\tsearch - print username/password pairs for given service\n"
                     << "\tchange - change the master password\n"
                     << "\texit - exit program\n"
                     << "\tchoose - choose another vault file\n";
