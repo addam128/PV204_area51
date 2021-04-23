@@ -35,7 +35,10 @@ public:
                 
                 else if (p.answer() == "search")
                     commands::search(eid);
-                
+
+                else if (p.answer() == "change_service")
+                    commands::change_entry(eid);
+
                 else if (p.answer() == "exit")
                     return;
                 
@@ -44,7 +47,7 @@ public:
                 
                 else if (p.answer() == "choose")
                     commands::choose_vault();
-                
+
                 else
                     std::cout << "Unknown option." << std::endl;
             

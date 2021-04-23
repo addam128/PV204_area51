@@ -31,6 +31,9 @@ namespace utils {
             case ERR_CANNOT_UNSEAL_VAULT:
                 error_message = "Cannot unseal the vault.";
                 break;
+            case ERR_SERVICE_USERNAME_NOT_FOUND:
+                error_message = "Given service/username pair not found in the vault.";
+                break;
             default:
                 error_message = "Unknown error.";
         }
