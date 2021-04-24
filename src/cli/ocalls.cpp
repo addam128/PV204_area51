@@ -20,11 +20,32 @@ int ocall_save_to_file(const uint8_t* sealed_data, size_t sealed_size) {
     return 0;
 }
 
+int ocall_save_size_to_file(const uint8_t* sealed_data, size_t sealed_size) {
+    std::ofstream file(commands::chosen_vault + "_size", std::ios::out | std::ios::binary);
+    if (file.fail()) {
+        return 1;
+    }
+    file.write((const char*)sealed_data, sealed_size);
+    file.flush();
+    file.close();
+    return 0;
+}
 
 int ocall_load_from_file(uint8_t* sealed_data, size_t sealed_size) {
     std::ifstream file(commands::chosen_vault, std::ios::in | std::ios::binary);
     if (file.fail()) {
         std::cerr << "Vault file missing." << std::endl; 
+        return 1;
+    }
+    file.read((char*)sealed_data, sealed_size);
+    file.close();
+    return 0;
+}
+
+int ocall_load_size_from_file(uint8_t* sealed_data, size_t sealed_size) {
+    std::ifstream file(commands::chosen_vault + "_size", std::ios::in | std::ios::binary);
+    if (file.fail()) {
+        std::cerr << "Vault size file missing." << std::endl; 
         return 1;
     }
     file.read((char*)sealed_data, sealed_size);

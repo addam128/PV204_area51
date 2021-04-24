@@ -126,8 +126,8 @@ Crypto_Library_Name := sgx_tcrypto
 Enclave_Cpp_Files := src/enclave/enclave.cpp src/enclave/sealing/sealing.cpp
 Enclave_Include_Paths := -Isrc/enclave  -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Isrc/simplevault
 
-Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
-Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++03 -nostdinc++
+Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
+Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++03
 Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tstdc -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
@@ -178,8 +178,8 @@ src/cli/enclave_u.c: $(SGX_EDGER8R) src/enclave/enclave.edl
 	@echo "GEN  =>  $@"
 
 src/cli/enclave_u.o: src/cli/enclave_u.c
-	@$(CC) $(App_C_Flags) -c $< -o $@
-	@echo "CC   <=  $<"
+	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX   <=  $<"
 
 
 src/cli/%.o: src/cli/%.cpp
@@ -202,8 +202,8 @@ src/enclave/enclave_t.c: $(SGX_EDGER8R) src/enclave/enclave.edl
 	@echo "GEN  =>  $@"
 
 src/enclave/enclave_t.o: src/enclave/enclave_t.c
-	@$(CC) $(Enclave_C_Flags) -c $< -o $@
-	@echo "CC   <=  $<"
+	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX   <=  $<"
 
 src/enclave/%.o: src/enclave/%.cpp
 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@

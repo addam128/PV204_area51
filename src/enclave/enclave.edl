@@ -54,16 +54,14 @@ enclave {
 
         // PRIVATE
 
-        // reads file and returns unsealed vault (serialized in protobuf)
+        // reads file and returns unsealed vault (serialized)
         int ecall_get_vault(
-            [out, size=vault_size] Vault* vault,
-            size_t vault_size
+            [out, size=64] Vault* vault
         );
 
-        // seals (already serialized to protobuf) vault and stores it to file
+        // seals (already serialized) vault and stores it to file
         int ecall_store_vault(
-            [in, size=vault_size] Vault* vault,
-            size_t vault_size 
+            [in, size=64] Vault* vault
         );
     };
 
@@ -75,9 +73,21 @@ enclave {
             [in, size=sealed_size] const uint8_t* sealed_data,
             size_t sealed_size
         );
+        
+        // saves sealed data size to file
+        int ocall_save_size_to_file(
+            [in, size=sealed_size] const uint8_t* sealed_data,
+            size_t sealed_size
+        );
 
         // returns sealed data from file
         int ocall_load_from_file(
+            [out, size=sealed_size] uint8_t* sealed_data,
+            size_t sealed_size
+        );
+        
+        // returns sealed data from file
+        int ocall_load_size_from_file(
             [out, size=sealed_size] uint8_t* sealed_data,
             size_t sealed_size
         );

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../cli/constants.hpp"
+#include <vector>
 
 typedef unsigned char byte;
 
@@ -12,7 +13,6 @@ typedef struct Cell {
 } Cell;
 
 typedef struct Vault {
-    int cell_count;
-    Cell cells[VAULT_MAX];
+    std::vector<Cell> cells;
     byte master_hash[MASTER_HASH_LEN + 1];
 } Vault;
