@@ -23,6 +23,9 @@ For academic purposes only. Do not use it as storage for sensitive data!
 - Users can create multiple vaults protected by master passwords.
 - Each vault can save username-password pairs for a service.
 - Multiple accounts can be saved for every service.
+- Each vault can store 100 entries.
+- Passwords must be between 8 and 62 chars long.
+- The maximal length for service names and usernames is 128 chars.
 
 ### List of commands
 
