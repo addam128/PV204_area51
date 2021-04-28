@@ -49,8 +49,4 @@ int ocall_vault_exists() {
     return 1;
 }
 
-int ocall_get_vault_size(size_t* wallet_size) {
-    return 0;
-}
-
 
