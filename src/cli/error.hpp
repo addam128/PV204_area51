@@ -2,7 +2,7 @@
 
 #include <exception>
 #include <string>
-#include <strstream>
+//#include <strstream>
 #include "constants.hpp"
 
 
@@ -27,7 +27,7 @@ private:
 
 public:
 
-    PwdTooShort(std::string msg): _msg(std::move(msg + std::to_string(MIN_PWD_LEN) + std::string(" chars."))){}
+    PwdTooShort(std::string msg): _msg(msg + std::to_string(MIN_PWD_LEN) + std::string(" chars.")){}
 
     virtual const char* what() const noexcept override {
         return _msg.c_str();

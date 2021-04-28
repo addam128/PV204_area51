@@ -21,7 +21,6 @@ int ecall_create_vault(const char* master_hash) {
     memcpy(vault->master_hash, master_hash, MASTER_HASH_LEN);
 
     // seal and store
-    sgx_status_t store_status;
     int store_ret;
     store_ret = ecall_store_vault(vault, sizeof(Vault));
     free(vault);
@@ -34,7 +33,6 @@ int ecall_create_vault(const char* master_hash) {
 
 int ecall_list_vault(const char* master_hash) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -60,7 +58,6 @@ int ecall_list_vault(const char* master_hash) {
 
 int ecall_change_master_password(const char* old_master_hash, const char* new_master_hash) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -79,7 +76,6 @@ int ecall_change_master_password(const char* old_master_hash, const char* new_ma
     memcpy(vault->master_hash, new_master_hash, MASTER_HASH_LEN);
 
     // seal and store
-    sgx_status_t store_status;
     int store_ret;
     store_ret = ecall_store_vault( vault, sizeof(Vault));
     if (store_ret != RET_SUCCESS) {
@@ -93,7 +89,6 @@ int ecall_change_master_password(const char* old_master_hash, const char* new_ma
 
 int ecall_add_entry(const char* master_hash, const char* service, const char* username, const char* password) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -123,7 +118,6 @@ int ecall_add_entry(const char* master_hash, const char* service, const char* us
 
 
     // seal and store
-    sgx_status_t store_status;
     int store_ret;
     store_ret = ecall_store_vault(vault, sizeof(Vault));
     free(vault);
@@ -136,7 +130,6 @@ int ecall_add_entry(const char* master_hash, const char* service, const char* us
 
 int ecall_list_entry(const char* master_hash, const char* service) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -164,7 +157,6 @@ int ecall_list_entry(const char* master_hash, const char* service) {
 
 int ecall_change_entry(const char* master_hash, const char* service, const char* username, const char* password) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -193,7 +185,6 @@ int ecall_change_entry(const char* master_hash, const char* service, const char*
     }
 
     // seal and store
-    sgx_status_t store_status;
     int store_ret;
     store_ret = ecall_store_vault(vault, sizeof(Vault));
     free(vault);
@@ -206,7 +197,6 @@ int ecall_change_entry(const char* master_hash, const char* service, const char*
 
 int ecall_remove_entry(const char* master_hash, const char* service, const char* username) {
     // load serialized vault
-    sgx_status_t get_vault_status;
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
@@ -253,7 +243,6 @@ int ecall_remove_entry(const char* master_hash, const char* service, const char*
     vault->cell_count--;
 
     // seal and store
-    sgx_status_t store_status;
     int store_ret;
     store_ret = ecall_store_vault(vault, sizeof(Vault));
     free(vault);

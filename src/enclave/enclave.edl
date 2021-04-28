@@ -89,11 +89,6 @@ enclave {
             [in, string] const char* password
         );
 
-        // returns maximal possible size of sealed serialized vault (i.e file size)
-        int ocall_get_vault_size(
-            [out] size_t* vault_size
-        );
-
         // checks whether vault already exists
         int ocall_vault_exists(
         );
