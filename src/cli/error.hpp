@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+#include "constants.hpp"
 
 
 class NotMatchingError : public std::exception {
@@ -25,7 +26,7 @@ private:
 
 public:
 
-    PwdTooShort(std::string msg): _msg(std::move(msg)){}
+    PwdTooShort(std::string msg): _msg(msg + std::to_string(MIN_PWD_LEN) + std::string(" chars.")){}
 
     virtual const char* what() const noexcept override {
         return _msg.c_str();

@@ -34,6 +34,11 @@ public:
         _answer.clear();
     }
 
+    void answer_push(const std::string& to_add) {
+
+        _answer += to_add;
+    }
+
     const char* c_str() const {
         
         return _answer.c_str();
