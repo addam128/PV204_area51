@@ -15,8 +15,9 @@ int ecall_create_vault(const char* master_hash) {
     }
 
     // create new vault
-    Vault* vault = (Vault*)calloc(1, sizeof(Vault));
+    Vault* vault = (Vault*) malloc(sizeof(Vault));
     vault->cell_count = 0;
+    memset(vault->master_hash, 0, MASTER_HASH_LEN + 1);
     memcpy(vault->master_hash, master_hash, MASTER_HASH_LEN);
 
     // seal and store
@@ -37,7 +38,7 @@ int ecall_list_vault(const char* master_hash) {
     Vault* vault = (Vault*)calloc(1, sizeof(Vault));
     size_t vault_size = sizeof(Vault);
     int get_vault_ret;
-    get_vault_ret = ecall_get_vault(vault, vault_size); //TODO: error handling
+    get_vault_ret = ecall_get_vault(vault, vault_size);
     if (get_vault_ret != RET_SUCCESS) {
         return get_vault_ret;
     }
@@ -111,10 +112,15 @@ int ecall_add_entry(const char* master_hash, const char* service, const char* us
         free(vault);
         return ERR_VAULT_FULL;
     }
+    vault->cells[vault->cell_count]._service[MAX_SERVICE_N_USER_LEN] = '\0';
+    vault->cells[vault->cell_count]._username[MAX_SERVICE_N_USER_LEN] = '\0';
+    vault->cells[vault->cell_count]._password[MAX_PWD_LEN] = '\0';
+
     strncpy(vault->cells[vault->cell_count]._service, service, MAX_SERVICE_N_USER_LEN);
     strncpy(vault->cells[vault->cell_count]._username, username, MAX_SERVICE_N_USER_LEN);
     strncpy(vault->cells[vault->cell_count]._password, password, MAX_PWD_LEN);
-    vault->cell_count += 1;  
+    vault->cell_count += 1;
+
 
     // seal and store
     sgx_status_t store_status;
